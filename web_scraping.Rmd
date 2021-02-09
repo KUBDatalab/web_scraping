@@ -12,5 +12,31 @@ knitr::opts_chunk$set(echo = TRUE)
 # Always remember!
 Do not scrape websites unethically! Always respect the copyright of the creator(s) of websites.
 
+# tilgang
+Ja, vi ved godt at du hellere vil få at vide hvordan du skraber lige præcis den der tekst fra den der helt specifikke side. 
+Men ville det ikke være bedre at få et generelt værktøj der kan bruges til en anden tekst fra en anden side?
+Så vi bruger en eksempelside med et righoldigt udvalg af data. Når du kan finde ud af det, kan du nok finde ud af at applikere teknikken på en anden side.
+
 # Pre-requisites
+R knowledge equivalent to R for absolutte begyndere. 
+Svarende til at man ved hvad en variabel er, hvad en datatype er, hvad en dataframe er. Hvad en pipe er.
+
+R og tidyverse, (is rvest actually included?) installed (or use rstudio.cloud - how does that actually work with external websites)
+Some knowledge of HTML and CSS. or are we going to cover that here?
+Selector Gadget - other browsers than chrome?
+
+# Step 1
+Install necessary packages. rvest parses HTML and/or XML files. For date and time manipulation: lubridate. tidyverse for a comprehensive set of packages making everything easier.
+```{r eval=F}
+install.packages(c("tidyverse", "lubridate", "rvest"))
+```
+
+This might take some time.
+
+Load the packages:
+```{r}
+library(tidyverse)
+library(lubridate)
+library(rvest)
+```
 
