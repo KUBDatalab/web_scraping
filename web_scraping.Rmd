@@ -1,0 +1,16 @@
+---
+title: "Web Scraping with R"
+author: "Lorna Wildgaard & Christian Knudsen"
+date: "9/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Always remember!
+Do not scrape websites unethically! Always respect the copyright of the creator(s) of websites.
+
+# Pre-requisites
+
