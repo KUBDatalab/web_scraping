@@ -39,8 +39,10 @@ library(tidyverse)
 library(lubridate)
 library(rvest)
 library(readtext)
+
+# Exercise 1: a brief introduction to how to find the information you need in html
 ```
-# Exercise 1: Scrape a single webpage
+# Exercise 2: Scrape a single webpage
 in this exercise we are going to downloade a single article from a newspaper as well as the relevant metadata. First define the url of the article and load the rvest package.
 Start by specifying the url
 link <- "https://www.europarl.europa.eu/news/da/press-room/20210322IPR00522/empowering-africa-parliament-defines-strategy-for-a-new-eu-africa-partnership"
@@ -52,7 +54,7 @@ NOT FINISHED!!!
 
 
 
-# Exercise 2: Following links when the webpages are numbered 
+# Exercise 3: Following links when the webpages are numbered 
 This sessions uses the following tutprial: Schweinberger, Martin. 2020. Web Crawling and Scraping using R. Brisbane: The University of Queensland. url:
 ttps://slcladal.github.io/webcrawling.html (Version 2020.12.03).
 
