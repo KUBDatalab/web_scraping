@@ -26,9 +26,9 @@ Some knowledge of HTML and CSS. or are we going to cover that here?
 Selector Gadget - other browsers than chrome?
 
 # Step 1
-Install necessary packages. rvest parses HTML and/or XML files. For date and time manipulation: lubridate. tidyverse for a comprehensive set of packages making everything easier.
+Install necessary packages. rvest parses HTML and/or XML files. For date and time manipulation: lubridate. tidyverse for a comprehensive set of packages making everything easier. Readtext package extracts text data from various fromats such as PDF, DOCX and Text Files.
 ```{r eval=F}
-install.packages(c("tidyverse", "lubridate", "rvest"))
+install.packages(c("tidyverse", "lubridate", "rvest", "readtext"))
 ```
 
 This might take some time.
@@ -38,5 +38,124 @@ Load the packages:
 library(tidyverse)
 library(lubridate)
 library(rvest)
+library(readtext)
 ```
+# Exercise 1: Scrape a single webpage
+in this exercise we are going to downloade a single article from a newspaper as well as the relevant metadata. First define the url of the article and load the rvest package.
+Start by specifying the url
+link <- "https://www.europarl.europa.eu/news/da/press-room/20210322IPR00522/empowering-africa-parliament-defines-strategy-for-a-new-eu-africa-partnership"
+Read the html code from the website:
+website <- read_html(link)
 
+NOT FINISHED!!!
+
+
+
+
+# Exercise 2: Following links when the webpages are numbered 
+This sessions uses the following tutprial: Schweinberger, Martin. 2020. Web Crawling and Scraping using R. Brisbane: The University of Queensland. url:
+ttps://slcladal.github.io/webcrawling.html (Version 2020.12.03).
+
+Normally we do not want to download a single document as we might as well copy/paste. In this exercise we'll download a series of docments from the Guardian website, tagged with "Angela Merkel". We want to download the tags and also the exact links to the articles of interest.
+
+url <- "https://www.theguardian.com/world/angela-merkel"
+html_document <- read_html(url)
+
+Second, download and scrape each individual article page. 
+For this, we extract all href-attributes from a-elements fitting a certain CSS-class. To select the right contents via XPATH-selectors, you need to investigate the HTML
+structure of your specific page. Modern browsers such as Firefox and Chrome support you in that task by a function called “Inspect Element” (or similar), available
+through a right-click on the page element
+
+links <- html_document %>%
+  html_nodes(xpath = "//div[contains(@class, 'fc-item__container')]/a") %>%
+  html_attr(name = "href")
+
+Now, links contains a list of 20 hyperlinks to single articles tagged with Angela Merkel
+
+head(links, 3)
+
+But stop! There is not only one page of links to tagged articles. If you have a look on the page in your browser, the tag overview page has several more than 60 sub
+pages, accessible via a paging navigator at the bottom. By clicking on the second page, we see a different URL-structure, which now contains a link to a specific paging
+number. We can use that format to create links to all sub pages by combining the base URL with the page numbers
+
+page_numbers <- 1:3
+base_url <- "https://www.theguardian.com/world/angela-merkel?page="
+paging_urls <- paste0(base_url, page_numbers)
+# View first 3 urls
+head(paging_urls, 3)
+
+Now we can iterate over all URLs of tag overview pages, to collect more/all links to articles tagged with Angela Merkel. We iterate with a for-loop over all URLs and
+append results from each single URL to a vector of all links
+
+all_links <- NULL
+for (url in paging_urls) {
+  # download and parse single ta overview page
+  html_document <- read_html(url)
+  # extract links to articles
+  links <- html_document %>%
+    html_nodes(xpath = "//div[contains(@class, 'fc-item__container')]/a") %>%
+    html_attr(name = "href")
+  
+  # append links to vector of all links
+  all_links <- c(all_links, links)
+}
+
+An effective way of programming is to encapsulate repeatedly used code in a specific function. This function then can be called with specific parameters, process
+something and return a result. We use this here, to encapsulate the downloading and parsing of a Guardian article given a specific URL. The code is the same as in our
+exercise 1 above, only that we combine the extracted texts and metadata in a data.frame and wrap the entire process in a function-Block.
+
+scrape_guardian_article <- function(url) {
+  
+  html_document <- read_html(url)
+  
+  title_xpath <- "//h1[contains(@class, 'content__headline')]"
+  title_text <- html_document %>%
+    html_node(xpath = title_xpath) %>%
+    html_text(trim = T)
+  
+  intro_xpath <- "//div[contains(@class, 'content__standfirst')]//p"
+  intro_text <- html_document %>%
+    html_node(xpath = intro_xpath) %>%
+    html_text(trim = T)
+  
+  body_xpath <- "//div[contains(@class, 'content__article-body')]//p"
+  body_text <- html_document %>%
+    html_nodes(xpath = body_xpath) %>%
+    html_text(trim = T) %>%
+    paste0(collapse = "\n")
+  
+  date_xpath <- "//time"
+  date_text <- html_document %>%
+    html_node(xpath = date_xpath) %>%
+    html_attr(name = "datetime") %>%
+    as.Date()
+  
+  article <- data.frame(
+    url = url,
+    date = date_text,
+    title = title_text,
+    body = paste0(intro_text, "\n", body_text)
+  )
+  
+  return(article)
+  
+}
+
+Now we can use that function scrape_guardian_article in any other part of our script. For instance, we can loop over each of our collected links. We use a running
+variable i, taking values from 1 to length(all_links) to access the single links in all_links and write some progress output
+
+all_articles <- data.frame()
+for (i in 1:length(all_links)) {
+  cat("Downloading", i, "of", length(all_links), "URL:", all_links[i], "\n")
+  article <- scrape_guardian_article(all_links[i])
+  # Append current article data.frame to the data.frame of all articles
+  all_articles <- rbind(all_articles, article)
+}
+
+Inspect the first three articles and save them:
+
+head(all_articles, 3)
+# Write articles to disk
+write.csv2(all_articles, file = "data/guardian_merkel.csv")
+
+The last command write the extracted articles to a CSV-file in the data directory for any later use
