@@ -43,13 +43,57 @@ library(readtext)
 # Exercise 1: a brief introduction to how to find the information you need in html
 ```
 # Exercise 2: Scrape a single webpage
-in this exercise we are going to downloade a single article from a newspaper as well as the relevant metadata. First define the url of the article and load the rvest package.
-Start by specifying the url
-link <- "https://www.europarl.europa.eu/news/da/press-room/20210322IPR00522/empowering-africa-parliament-defines-strategy-for-a-new-eu-africa-partnership"
-Read the html code from the website:
-website <- read_html(link)
+As a first step, we will download a single web page from The Guardian and extract text together with relevant metadata such as the article date. Let’s define the URL of the article of interest and load the rvest package, which provides very useful functions for web crawling and scraping.
 
-NOT FINISHED!!!
+url <- "https://www.theguardian.com/world/2017/jun/26/angela-merkel-and-donald-trump-head-for-clash-at-g20-summit"
+require("rvest")
+A convenient method to download and parse a webpage is provided by the function read_html which accepts a URL as its main argument. The function downloads the page and interprets the html source code as an HTML or XML object.
+
+html_document <- read_html(url)
+HTML and XML objects are a structured representation of HTML/XML source code, which allows to extract single elements (headlines e.g. <h1>, paragraphs <p>, links <a>, …), their attributes (e.g. <a href="http://...">) or text wrapped in between elements (e.g. <p>my text...</p>). Elements can be extracted in XML objects with XPATH-expressions.
+
+XPATH is a query language that parses XML-tree structures and we use it to select the headline element from the HTML page.
+
+The following xpath expression queries for first-order-headline elements h1, anywhere in the tree // which fulfill a certain condition [...], namely that the class attribute of the h1 element must contain the value content__headline.
+
+The next expression uses R pipe operator %>%, which takes the input from the left side of the expression and passes it on to the function ion the right side as its first argument. The result of this function is either passed onto the next function, via a pipe (%>%) or it is assigned to variable, if it is the last operation in a pipe. Our pipe takes the html_document object, passes it to the html_node function, which extracts the first node fitting the given xpath expression. The resulting node object is passed to the html_text function which extracts the text wrapped in the h1-element.
+
+title_xpath <- "//h1[contains(@class, 'content__headline')]"
+title_text <- html_document %>%
+  html_node(xpath = title_xpath) %>%
+  html_text(trim = T)
+Let’s see, what the title_text contains:
+
+cat(title_text)
+## NA
+Now we modify the xpath expressions, to extract the article info, the paragraphs of the body text and the article date. Note that there are multiple paragraphs in the article. To extract not only the first, but all paragraphs we utilize the html_nodes function and glue the resulting single text vectors of each paragraph together with the paste0 function.
+
+intro_xpath <- "//div[contains(@class, 'content__standfirst')]//p"
+intro_text <- html_document %>%
+  html_node(xpath = intro_xpath) %>%
+  html_text(trim = T)
+cat(intro_text)
+## NA
+body_xpath <- "//div[contains(@class, 'content__article-body')]//p"
+body_text <- html_document %>%
+  html_nodes(xpath = body_xpath) %>%
+  html_text(trim = T) %>%
+  paste0(collapse = "\n")
+Now, let’s inspect the first 150 elements of the text body.
+
+cat(substr(body_text, 0, 150))
+We now extract the date from the html document.
+
+date_xpath <- "//time"
+date_object <- html_document %>%
+  html_node(xpath = date_xpath) %>%
+  html_attr(name = "datetime") %>%
+  as.Date()
+cat(format(date_object, "%Y-%m-%d"))
+## NA
+The variables title_text, intro_text, body_text and date_object now contain the raw data for any subsequent text processing.
+
+
 
 
 
