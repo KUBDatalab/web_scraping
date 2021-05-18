@@ -50,6 +50,7 @@ require("rvest")
 A convenient method to download and parse a webpage is provided by the function read_html which accepts a URL as its main argument. The function downloads the page and interprets the html source code as an HTML or XML object.
 
 html_document <- read_html(url)
+
 HTML and XML objects are a structured representation of HTML/XML source code, which allows to extract single elements (headlines e.g. <h1>, paragraphs <p>, links <a>, …), their attributes (e.g. <a href="http://...">) or text wrapped in between elements (e.g. <p>my text...</p>). Elements can be extracted in XML objects with XPATH-expressions.
 
 XPATH is a query language that parses XML-tree structures and we use it to select the headline element from the HTML page.
@@ -58,6 +59,8 @@ The following xpath expression queries for first-order-headline elements h1, any
 
 The next expression uses R pipe operator %>%, which takes the input from the left side of the expression and passes it on to the function ion the right side as its first argument. The result of this function is either passed onto the next function, via a pipe (%>%) or it is assigned to variable, if it is the last operation in a pipe. Our pipe takes the html_document object, passes it to the html_node function, which extracts the first node fitting the given xpath expression. The resulting node object is passed to the html_text function which extracts the text wrapped in the h1-element.
 
+[NB - det antages herunder at _xpath variablene er fundet ovenfor. De defineres derfor ikke explicit]
+  
 title_xpath <- "//h1[contains(@class, 'content__headline')]"
 title_text <- html_document %>%
   html_node(xpath = title_xpath) %>%
@@ -65,6 +68,33 @@ title_text <- html_document %>%
 Let’s see, what the title_text contains:
 
 cat(title_text)
+  
+A good rule of thumb in programming is that if you expect to do something more than three times, you should write a function. How do we do that?
+  
+title_extract <- function(x){
+                 print(x)
+                 } 
+
+This is a relatively simple function. We define it by assigning the result of another function, function(), to the variable "title_extract", which then becomes a: function.
+                 
+As we have seen repeatedly with earlier functions, a function is something that takes some sort of input (the input can be nothing), and returns something. In this case the function title_extract() takes some input, for the purposes of what the function does, that is referred to as "x". And this function prints out x. Not that interesting.
+                 
+Instead we could give the function some more useful features:
+title_extract <- function(html){
+  result <- html %>%
+  html_node(xpath = title_xpath) %>%
+  html_text(trim = T)
+  return(result)
+  }  
+  
+Now, the function as its input takes html_document. It does the exact same thing we did previously extracting the title, and saved in the variable "result", and finally we ask the function to "return" the result.
+
+That was a bit complicated. But now we can write:
+
+title_text <- title_extract(html_document)
+               
+It takes a bit longer to write that function. But it saves a lot of typing later.              
+
 ## NA
 Now we modify the xpath expressions, to extract the article info, the paragraphs of the body text and the article date. Note that there are multiple paragraphs in the article. To extract not only the first, but all paragraphs we utilize the html_nodes function and glue the resulting single text vectors of each paragraph together with the paste0 function.
 
@@ -93,16 +123,19 @@ cat(format(date_object, "%Y-%m-%d"))
 ## NA
 The variables title_text, intro_text, body_text and date_object now contain the raw data for any subsequent text processing.
 
-
+We might want to write functions for the individual extracting steps, just like we did earlier with the title text.
 
 
 
 
 # Exercise 3: Following links when the webpages are numbered 
+  
+[NB Her bliver vi også nødt til at have kigget på html'en og hvordan siden er struktureret i øvelse 1.]
+  
 This sessions uses the following tutprial: Schweinberger, Martin. 2020. Web Crawling and Scraping using R. Brisbane: The University of Queensland. url:
 ttps://slcladal.github.io/webcrawling.html (Version 2020.12.03).
 
-Normally we do not want to download a single document as we might as well copy/paste. In this exercise we'll download a series of docments from the Guardian website, tagged with "Angela Merkel". We want to download the tags and also the exact links to the articles of interest.
+Normally we do not want to download a single document as we might as well copy/paste. In this exercise we'll download a series of documents from the Guardian website, tagged with "Angela Merkel". We want to download the tags and also the exact links to the articles of interest.
 
 url <- "https://www.theguardian.com/world/angela-merkel"
 html_document <- read_html(url)
