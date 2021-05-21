@@ -166,6 +166,8 @@ head(paging_urls, 3)
 Now we can iterate over all URLs of tag overview pages, to collect more/all links to articles tagged with Angela Merkel. We iterate with a for-loop over all URLs and
 append results from each single URL to a vector of all links
 
+               Vær vågen her! for løkken er ikke introduceret før!
+               Vi skal have initialiseret all_links vektoren også!
 all_links <- NULL
 for (url in paging_urls) {
   # download and parse single ta overview page
